@@ -8,9 +8,9 @@
 #include <getopt.h>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <arpa/inet.h> // inet_pton
 
-#define BUFSIZE 256
+// A buffer large enough to contain the longest allowed string 
+#define BUFSIZE 256 // size of the message tranferred to/from the server
 
 #define USAGE                                                          \
   "usage:\n"                                                           \
@@ -38,7 +38,8 @@ int main(int argc, char **argv) {
   char *hostname = "localhost";
 
   // Parse and set command line arguments
-  while ((option_char = getopt_long(argc, argv, "p:s:m:hx", gLongOptions, NULL)) != -1) {
+  while ((option_char =
+              getopt_long(argc, argv, "p:s:m:hx", gLongOptions, NULL)) != -1) {
     switch (option_char) {
       default:
         fprintf(stderr, "%s", USAGE);
@@ -62,7 +63,8 @@ int main(int argc, char **argv) {
   setbuf(stdout, NULL);  // disable buffering
 
   if ((portno < 1025) || (portno > 65535)) {
-    fprintf(stderr, "%s @ %d: invalid port number (%d)\n", __FILE__, __LINE__, portno);
+    fprintf(stderr, "%s @ %d: invalid port number (%d)\n", __FILE__, __LINE__,
+            portno);
     exit(1);
   }
 
@@ -77,42 +79,57 @@ int main(int argc, char **argv) {
   }
 
   /* Socket Code Here */
+  // First test copied from https://gist.github.com/suyash/2488ff6996c98a8ee3a84fe3198a6f85
 
-  // create client socket
-  struct sockaddr_in server_address; // struct containing all the information we need about the address of the server socket 
-	memset(&server_address, 0, sizeof(server_address)); // make sure the struct is empty 
-	server_address.sin_family = AF_INET; // don't care IPv4 or IPv6
+  struct sockaddr_in server_address;
+	memset(&server_address, 0, sizeof(server_address));
+	server_address.sin_family = AF_INET;
 
-	// create binary representation of server name and stores it as sin_addr
+	// creates binary representation of server name
+	// and stores it as sin_addr
+	// http://beej.us/guide/bgnet/output/html/multipage/inet_ntopman.html
 	inet_pton(AF_INET, hostname, &server_address.sin_addr);
 
-	server_address.sin_port = htons(portno); // convert multi-byte integer from host to network byte order (short)
+	// htons: port in network order format
+	server_address.sin_port = htons(portno);
 
 	// open a stream socket
 	int sock;
-	if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0)
-    exit(1); // error checking: failed to create socket
+	if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+		printf("could not create socket\n");
+		return 1;
+	}
 
-	// fTCP is connection oriented, a reliable connection
+	// TCP is connection oriented, a reliable connection
 	// **must** be established before any data is exchanged
-	if (connect(sock, (struct sockaddr*)&server_address, sizeof(server_address)) < 0) 
-	  exit(1); // error checking: failed to connect to server 
+	if (connect(sock, (struct sockaddr*)&server_address,
+	            sizeof(server_address)) < 0) {
+		printf("could not connect to server\n");
+		return 1;
+	}
 
-  // send message to the server
-  send(sock, message, strlen(message), 0);
+	// send
 
-  // receive message from the server
-  int res = 0, len = 0, maxlen = BUFSIZE;
+	// data that will be sent to the server
+	const char* data_to_send = "Gangadhar Hi Shaktimaan hai";
+	send(sock, data_to_send, strlen(data_to_send), 0);
+
+	// receive
+
+	int n = 0;
+	int len = 0, maxlen = 100;
 	char buffer[maxlen];
 	char* pbuffer = buffer;
 
-  while ((res = recv(sock, pbuffer, maxlen, 0)) > 0){ 
-    pbuffer += res;
-    maxlen -= res;
-    len += res;
-    buffer[len] = '\0'; // last byte + 1 is null
-    printf("%s", buffer);    
-  }
+	// will remain open until the server terminates the connection
+	while ((n = recv(sock, pbuffer, maxlen, 0)) > 0) {
+		pbuffer += n;
+		maxlen -= n;
+		len += n;
+
+		buffer[len] = '\0';
+		printf("received: '%s'\n", buffer);
+	}
 
 	// close the socket
 	close(sock);
