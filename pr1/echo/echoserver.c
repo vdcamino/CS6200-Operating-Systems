@@ -65,53 +65,54 @@ int main(int argc, char **argv) {
 
   // Socket Code Here
 
-	struct sockaddr_in server_address; // struct containing all the information we need about the address of the server socket 
+  // client 
+  int client_socket_fd; // file descriptor of the client socket
+  struct sockaddr_in client_address;  // struct containing all the information we need about the address of the client socket 
+  unsigned int client_len;  // size of the client address
+
+  // server
+	struct sockaddr_in server_address;  // struct containing all the information we need about the address of the server socket
 	memset(&server_address, 0, sizeof(server_address)); // make sure the struct is empty 
 	server_address.sin_family = AF_INET;  // don't care IPv4 or IPv6
 	server_address.sin_port = htons(portno); // convert multi-byte integer from host to network byte order (short)
 	server_address.sin_addr.s_addr = htonl(INADDR_ANY); // exact same thing as htons (but network long this time)
+  int yes = 1;  // For setsockopt() SO_REUSEADDR, to avoid errors when a port is still being used by another socket
 
-  // create server socket
-	int socket_fd; // declare file descriptor (the server socket)
-	if ((socket_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0)
+  // create server socket that will accept incoming connections
+	int server_socket_fd; // file descriptor of the server socket
+	if ((server_socket_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0)
 		exit(1); // error checking: failed to create socket
 
+  // line of code to lose the pesky "address already in use" error message (set SO_REUSEADDR on a socket to true (1))
+  setsockopt(server_socket_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
+
   // before we start listen()ing, we assign a local socket address to the socket we have just created
-  if ((bind(socket_fd, (struct sockaddr *)&server_address, sizeof(server_address))) < 0)
+  if (bind(server_socket_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
 		exit(1); // error checking: failed to bind socket (assign an address to it)
 
-	if (listen(socket_fd, WAITING_QUEUE_SIZE) < 0)
+  // start listening
+	if (listen(server_socket_fd, WAITING_QUEUE_SIZE) < 0)
 		exit(1); // error checking: failed to make socket start listening
 
-	// socket address used to store client address
-	struct sockaddr_in client_address;
-	socklen_t client_address_len = 0;
-
-	// infinite loop: echoserver should not terminate after sending its first response; rather, it should prepare to serve another request
+	// infinite loop: echo server should not terminate after sending its first response; rather, it should prepare to serve another request
 	while (1) {
-		// create new socket to accept the incoming connection
-		int new_socket_fd;
-		if ((new_socket_fd = accept(socket_fd, (struct sockaddr *)&client_address, &client_address_len)) < 0)
-			exit(1); // error checking: failed to create socket that would accept new data 
+    // get the size of the client parameter
+    client_len = sizeof(client_address);
 
-    int res = 0, len = 0, maxlen = BUFSIZE;
-    char buffer[maxlen];
-		char *pbuffer = buffer;
+    // connect to the client
+    if ((client_socket_fd = accept(server_socket_fd, (struct sockaddr *)&client_address, &client_len)) < 0)
+      exit(1); // error checking: failed to accept connection 
 
-		// keep running as long as the client keeps the connection open
-    // 0 from recv means connection closed 
-		while ((res = recv(new_socket_fd, pbuffer, maxlen, 0)) > 0) {
-      pbuffer += res;
-			len += res;
-      maxlen -= res;
-      buffer[len] = '\0'; // last byte + 1 is null
-			// echo server sends content back
-			send(new_socket_fd, buffer, len, 0);
-		}
+    char buffer[BUFSIZE]; // buffer that contains the data we have received
+    int recv_msg_len;     // number of bytes of the data we have received
 
-		close(new_socket_fd);
-	}
+    // receive the message from the client 
+    if ((recv_msg_len = recv(client_socket_fd, buffer, BUFSIZE, 0)) <= 0)
+      exit(1); // error checking: failed to receive message from the client
 
-	close(socket_fd);
+    // send the exact same message to the client 
+    if (send(client_socket_fd, buffer, recv_msg_len, 0) != recv_msg_len)
+      exit(1); // error checking: failed to resend message to the client
+  }
 	return 0;
 }

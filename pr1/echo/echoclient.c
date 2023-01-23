@@ -79,42 +79,35 @@ int main(int argc, char **argv) {
   /* Socket Code Here */
 
   // create client socket
-  struct sockaddr_in server_address; // struct containing all the information we need about the address of the server socket 
+  struct sockaddr_in server_address;                  // struct containing all the information we need about the address of the server socket 
 	memset(&server_address, 0, sizeof(server_address)); // make sure the struct is empty 
-	server_address.sin_family = AF_INET; // don't care IPv4 or IPv6
+	server_address.sin_family = AF_INET;                // don't care if it is IPv4 or IPv6
 
-	// create binary representation of server name and stores it as sin_addr
+	// create binary representation of server name and stores it as sin_addr. pton = "printable to network"
 	inet_pton(AF_INET, hostname, &server_address.sin_addr);
-
 	server_address.sin_port = htons(portno); // convert multi-byte integer from host to network byte order (short)
 
-	// open a stream socket
-	int sock;
-	if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0)
+	// create client socket
+	int client_socket_fd;
+	if ((client_socket_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0)
     exit(1); // error checking: failed to create socket
 
-	// fTCP is connection oriented, a reliable connection
-	// **must** be established before any data is exchanged
-	if (connect(sock, (struct sockaddr*)&server_address, sizeof(server_address)) < 0) 
+	// establish connection before initiating data exchange
+	if (connect(client_socket_fd, (struct sockaddr*)&server_address, sizeof(server_address)) < 0) 
 	  exit(1); // error checking: failed to connect to server 
 
   // send message to the server
-  send(sock, message, strlen(message), 0);
+  send(client_socket_fd, message, strlen(message), 0);
 
   // receive message from the server
-  int res = 0, len = 0, maxlen = BUFSIZE;
-	char buffer[maxlen];
-	char* pbuffer = buffer;
+  char buffer[BUFSIZE];
+  int bytes_rcvd = 0;         // number of bytes read during a single recv() 
+  if ((bytes_rcvd = recv(client_socket_fd, buffer, BUFSIZE - 1, 0)) <= 0)
+    exit(1);                  // error checking: failed to receive messsage back 
+  buffer[bytes_rcvd] = '\0';  // according to the project instructions: "Neither your server nor your client should assume that the string response will be null-terminated"
+  printf("%s", buffer);       // data that we have received from the server
 
-  while ((res = recv(sock, pbuffer, maxlen, 0)) > 0){ 
-    pbuffer += res;
-    maxlen -= res;
-    len += res;
-    buffer[len] = '\0'; // last byte + 1 is null
-    printf("%s", buffer);    
-  }
-
-	// close the socket
-	close(sock);
+	// close the client socket
+	close(client_socket_fd);
 	return 0;
 }
