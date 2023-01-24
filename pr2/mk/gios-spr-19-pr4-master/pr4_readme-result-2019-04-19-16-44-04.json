@@ -1,0 +1,13 @@
+{
+    "output": "Submitted",
+    "tests": [
+        {
+            "output": {
+                "passfail": "passed"
+            },
+            "traceback": "Thank you for submitting your readme-student.md file",
+            "description": "Confirm receipt"
+        }
+    ],
+    "correct": true
+}

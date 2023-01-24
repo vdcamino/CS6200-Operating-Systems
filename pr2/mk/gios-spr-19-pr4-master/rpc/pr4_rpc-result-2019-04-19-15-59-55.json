@@ -1,0 +1,66 @@
+{
+    "tests": [
+        {
+            "output": {
+                "client_returncode": 0,
+                "passfail": "passed",
+                "client_console": "gcc -Wall -g3 -I/usr/include/ImageMagick-6 -I/usr/include/x86_64-linux-gnu/ImageMagick-6 -Wno-unused-variable   -c -o bvt_main.o bvt_main.c\ngcc -Wall -g3 -I/usr/include/ImageMagick-6 -I/usr/include/x86_64-linux-gnu/ImageMagick-6 -Wno-unused-variable   -c -o minify_via_rpc.o minify_via_rpc.c\ngcc -Wall -g3 -I/usr/include/ImageMagick-6 -I/usr/include/x86_64-linux-gnu/ImageMagick-6 -Wno-unused-variable   -c -o steque.o steque.c\ngcc -c bvtminify.c `pkg-config --cflags MagickCore` -g3\ngcc -o bvt_main -Wall -g3 -I/usr/include/ImageMagick-6 -I/usr/include/x86_64-linux-gnu/ImageMagick-6 -Wno-unused-variable `pkg-config --cflags MagickCore` -g3 bvt_main.o minify_via_rpc.o steque.o bvtminify.o  -lpthread  `pkg-config --libs MagickCore`\n"
+            },
+            "traceback": "",
+            "description": "Tests that the client compiles"
+        },
+        {
+            "output": {
+                "server_console": "gcc -o bvtminifymt.o -c -DBVT_DELAY=1 bvtminify.c `pkg-config --cflags MagickCore` -g3\ngcc -o bvtmt_svc -Wall -g3 -I/usr/include/ImageMagick-6 -I/usr/include/x86_64-linux-gnu/ImageMagick-6 -Wno-unused-variable -DBVT_DELAY=0 `pkg-config --cflags MagickCore` -g3 -DRPC_SVC_FG minifyjpeg_svc.o minifyjpeg_xdr.o bvtminifymt.o minifyjpeg.o steque.o  -lpthread  `pkg-config --libs MagickCore`\n",
+                "passfail": "passed",
+                "server_returncode": 0
+            },
+            "traceback": "",
+            "description": "Tests that the server compiles"
+        },
+        {
+            "output": {
+                "client_returncode": 0,
+                "server_console": "",
+                "passfail": "passed",
+                "server_returncode": null,
+                "client_console": ""
+            },
+            "traceback": "",
+            "description": "Tests that a large file transfer works."
+        },
+        {
+            "output": {
+                "client_returncode": 0,
+                "server_console": "",
+                "passfail": "passed",
+                "server_returncode": null,
+                "client_console": ""
+            },
+            "traceback": "",
+            "description": "Tests that multiple transfers work."
+        },
+        {
+            "output": {
+                "client_returncode": 0,
+                "server_console": "",
+                "passfail": "passed",
+                "server_returncode": null,
+                "client_console": ""
+            },
+            "traceback": "",
+            "description": "Tests that a single transfer works."
+        },
+        {
+            "output": {
+                "client_returncode": 5,
+                "server_console": "",
+                "passfail": "passed",
+                "server_returncode": null,
+                "client_console": ""
+            },
+            "traceback": "",
+            "description": "Tests that the client handles a timeout situation correctly."
+        }
+    ]
+}

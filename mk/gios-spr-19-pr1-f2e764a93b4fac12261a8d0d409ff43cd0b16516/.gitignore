@@ -1,0 +1,14 @@
+*.pyc
+.DS_Store
+.bonnie
+
+echo/student.zip
+gflib/student.zip
+mtgf/student.zip
+
+echo/*-result-*.json
+gflib/*-result-*.json
+mtgf/*-result-*.json
+
+*.log
+.vagrant

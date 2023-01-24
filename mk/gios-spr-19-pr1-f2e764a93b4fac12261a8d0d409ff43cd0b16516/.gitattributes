@@ -1,0 +1,2 @@
+# Set .txt files to always be line feed
+*.txt=lf

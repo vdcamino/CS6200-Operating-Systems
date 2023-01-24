@@ -1,0 +1,109 @@
+{
+    "tests": [
+        {
+            "output": {
+                "proxy_returncode": 0,
+                "proxy_console": "cc -Wall --std=gnu99 -g3 -Wno-format-security -Werror -fsanitize=address -fno-omit-frame-pointer   -c -o webproxy.o webproxy.c\ncc -Wall --std=gnu99 -g3 -Wno-format-security -Werror -fsanitize=address -fno-omit-frame-pointer   -c -o steque.o steque.c\ncc -Wall --std=gnu99 -g3 -Wno-format-security -Werror -fsanitize=address -fno-omit-frame-pointer   -c -o gfserver.o gfserver.c\ncc -Wall --std=gnu99 -g3 -Wno-format-security -Werror -fsanitize=address -fno-omit-frame-pointer   -c -o handle_with_curl.o handle_with_curl.c\ncc -o webproxy -Wall --std=gnu99 -g3 -Wno-format-security -Werror -fsanitize=address -fno-omit-frame-pointer  webproxy.o steque.o gfserver.o handle_with_curl.o -lpthread -lcurl\n",
+                "passfail": "passed"
+            },
+            "traceback": "",
+            "description": "Proxy Compilation Test"
+        },
+        {
+            "output": {
+                "proxy_returncode": null,
+                "server_returncode": 0,
+                "client_console": "",
+                "passfail": "passed",
+                "client_returncode": 0,
+                "proxy_console": ""
+            },
+            "traceback": "",
+            "description": "Tests that the server properly handles requests for non-existent files"
+        },
+        {
+            "output": {
+                "proxy_returncode": null,
+                "server_returncode": 0,
+                "client_console": "",
+                "passfail": "passed",
+                "client_returncode": 0,
+                "proxy_console": ""
+            },
+            "traceback": "",
+            "description": "Tests that the server properly sends an OK response and a long message."
+        },
+        {
+            "output": {
+                "proxy_returncode": null,
+                "server_returncode": 0,
+                "client_console": "",
+                "passfail": "passed",
+                "client_returncode": 0,
+                "proxy_console": ""
+            },
+            "traceback": "",
+            "description": "Tests that the server properly sends an OK response and a short message."
+        },
+        {
+            "output": {
+                "proxy_returncode": null,
+                "server_returncode": 0,
+                "client_console": "",
+                "passfail": "passed",
+                "client_returncode": 0,
+                "proxy_console": ""
+            },
+            "traceback": "",
+            "description": "Test with 3:1 ratio client threads to proxy threads"
+        },
+        {
+            "output": {
+                "proxy_returncode": null,
+                "server_returncode": 0,
+                "client_console": "",
+                "passfail": "passed",
+                "client_returncode": 0,
+                "proxy_console": ""
+            },
+            "traceback": "",
+            "description": "Test with equal number of client and proxy threads"
+        },
+        {
+            "output": {
+                "proxy_returncode": null,
+                "server_returncode": 0,
+                "client_console": "",
+                "passfail": "passed",
+                "client_returncode": 0,
+                "proxy_console": ""
+            },
+            "traceback": "",
+            "description": "Tests the proxy behaves as expected when one request is made at a time."
+        },
+        {
+            "output": {
+                "proxy_returncode": null,
+                "server_returncode": 0,
+                "client_console": "",
+                "passfail": "passed",
+                "client_returncode": 0,
+                "proxy_console": ""
+            },
+            "traceback": "",
+            "description": "Tests the proxy behaves as expected when multiple requests are made simultaneously."
+        },
+        {
+            "output": {
+                "proxy_returncode": null,
+                "server_returncode": 0,
+                "client_console": "",
+                "passfail": "passed",
+                "client_returncode": 0,
+                "proxy_console": ""
+            },
+            "traceback": "",
+            "description": "Test with 2:1 ratio client threads to proxy threads"
+        }
+    ]
+}

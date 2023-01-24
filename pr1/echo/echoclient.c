@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
 
   /* Socket Code Here */
 
-  // create client socket
+  // create server socket
   struct sockaddr_in server_address;                  // struct containing all the information we need about the address of the server socket 
 	memset(&server_address, 0, sizeof(server_address)); // make sure the struct is empty 
 	server_address.sin_family = AF_INET;                // don't care if it is IPv4 or IPv6

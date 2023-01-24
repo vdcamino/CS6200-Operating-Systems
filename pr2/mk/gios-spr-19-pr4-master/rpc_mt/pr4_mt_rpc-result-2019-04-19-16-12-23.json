@@ -1,0 +1,66 @@
+{
+    "tests": [
+        {
+            "output": {
+                "client_returncode": 4,
+                "server_console": "",
+                "passfail": "failed",
+                "server_returncode": -15,
+                "client_console": "RPC failed: RPC: Timed out\nRPC failed: RPC: Timed out\nRPC failed: RPC: Timed out\nRPC failed: RPC: Timed out\nRPC failed: RPC: Timed out\nRPC failed: RPC: Timed out\nRPC failed: RPC: Timed out\nRPC failed: RPC: Timed out\nRPC failed: RPC: Timed out\nRPC failed: RPC: Timed out\nRPC failed: RPC: Unable to receive; errno = Connection reset by peer\nRPC failed: RPC: Unable to receive; errno = Connection reset by peer\nRPC failed: RPC: Unable to receive; errno = Connection reset by peer\nRPC failed: RPC: Unable to receive; errno = Connection reset by peer\nRPC failed: RPC: Unable to receive; errno = Connection reset by peer\n"
+            },
+            "traceback": "Traceback (most recent call last):\n  File \"/home/grader/pr4_mt_rpc/gios.py\", line 288, in func_wrapper\n    ans = func(self)\n  File \"run.py\", line 236, in test_multithreaded_transfers_are_multithreaded\n    self.go(num_client_threads, num_server_threads, delay, workload, timeout=18, run_with_preload=True)\n  File \"run.py\", line 175, in go\n    self.converse(server_args, client_args, **kwargs)\n  File \"run.py\", line 152, in converse\n    self.assertEqual(self.p_client.poll(), 0, \"The client exited abnormally.\")\nAssertionError: The client exited abnormally.\n",
+            "description": "Tests that multithreaded transfers are multithreaded."
+        },
+        {
+            "output": {
+                "client_returncode": 0,
+                "passfail": "passed",
+                "client_console": "gcc -Wall -g3 -I/usr/include/ImageMagick-6 -I/usr/include/x86_64-linux-gnu/ImageMagick-6 -Wno-unused-variable   -c -o bvt_main.o bvt_main.c\ngcc -Wall -g3 -I/usr/include/ImageMagick-6 -I/usr/include/x86_64-linux-gnu/ImageMagick-6 -Wno-unused-variable   -c -o minify_via_rpc.o minify_via_rpc.c\ngcc -Wall -g3 -I/usr/include/ImageMagick-6 -I/usr/include/x86_64-linux-gnu/ImageMagick-6 -Wno-unused-variable   -c -o steque.o steque.c\ngcc -c bvtminify.c `pkg-config --cflags MagickCore` -g3\nIn file included from bvtminify.c:8:0:\nbvtminify.c: In function 'magickminify':\ngios_test.h:4:33: warning: format '%s' expects argument of type 'char *', but argument 3 has type 'pthread_t {aka long unsigned int}' [-Wformat=]\n #define GIOS_RPC_MT_TEST_PREFIX \"MINIFY_MT_TEST=%s\"\n                                 ^\nbvtminify.c:29:32: note: in expansion of macro 'GIOS_RPC_MT_TEST_PREFIX'\n   syslog(LOG_USER | LOG_ALERT, GIOS_RPC_MT_TEST_PREFIX, pthread_self());\n                                ^~~~~~~~~~~~~~~~~~~~~~~\ngcc -o bvt_main -Wall -g3 -I/usr/include/ImageMagick-6 -I/usr/include/x86_64-linux-gnu/ImageMagick-6 -Wno-unused-variable `pkg-config --cflags MagickCore` -g3 bvt_main.o minify_via_rpc.o steque.o bvtminify.o  -lpthread  `pkg-config --libs MagickCore`\n"
+            },
+            "traceback": "",
+            "description": "Tests that the client compiles"
+        },
+        {
+            "output": {
+                "server_console": "gcc -Wall -g3 -I/usr/include/ImageMagick-6 -I/usr/include/x86_64-linux-gnu/ImageMagick-6 -Wno-unused-variable   -c -o minifyjpeg_svc.o minifyjpeg_svc.c\ngcc -Wall -g3 -I/usr/include/ImageMagick-6 -I/usr/include/x86_64-linux-gnu/ImageMagick-6 -Wno-unused-variable   -c -o minifyjpeg_xdr.o minifyjpeg_xdr.c\ngcc -o bvtminifymt.o -c -DBVT_DELAY=1 bvtminify.c `pkg-config --cflags MagickCore` -g3\nIn file included from bvtminify.c:8:0:\nbvtminify.c: In function 'magickminify':\ngios_test.h:4:33: warning: format '%s' expects argument of type 'char *', but argument 3 has type 'pthread_t {aka long unsigned int}' [-Wformat=]\n #define GIOS_RPC_MT_TEST_PREFIX \"MINIFY_MT_TEST=%s\"\n                                 ^\nbvtminify.c:29:32: note: in expansion of macro 'GIOS_RPC_MT_TEST_PREFIX'\n   syslog(LOG_USER | LOG_ALERT, GIOS_RPC_MT_TEST_PREFIX, pthread_self());\n                                ^~~~~~~~~~~~~~~~~~~~~~~\ngcc -Wall -g3 -I/usr/include/ImageMagick-6 -I/usr/include/x86_64-linux-gnu/ImageMagick-6 -Wno-unused-variable   -c -o minifyjpeg.o minifyjpeg.c\ngcc -o bvtmt_svc -Wall -g3 -I/usr/include/ImageMagick-6 -I/usr/include/x86_64-linux-gnu/ImageMagick-6 -Wno-unused-variable -DBVT_DELAY=0 `pkg-config --cflags MagickCore` -g3 -DRPC_SVC_FG minifyjpeg_svc.o minifyjpeg_xdr.o bvtminifymt.o minifyjpeg.o steque.o  -lpthread  `pkg-config --libs MagickCore`\n",
+                "passfail": "passed",
+                "server_returncode": 0
+            },
+            "traceback": "",
+            "description": "Tests that the server compiles"
+        },
+        {
+            "output": {
+                "client_returncode": 0,
+                "server_console": "",
+                "passfail": "passed",
+                "server_returncode": null,
+                "client_console": ""
+            },
+            "traceback": "",
+            "description": "Tests that multiple transfers work."
+        },
+        {
+            "output": {
+                "client_returncode": 0,
+                "server_console": "",
+                "passfail": "passed",
+                "server_returncode": null,
+                "client_console": ""
+            },
+            "traceback": "",
+            "description": "Tests that multithreaded transfers work."
+        },
+        {
+            "output": {
+                "client_returncode": 0,
+                "server_console": "",
+                "passfail": "passed",
+                "server_returncode": 15,
+                "client_console": ""
+            },
+            "traceback": "",
+            "description": "Tests multithreaded server with multiple clients"
+        }
+    ]
+}

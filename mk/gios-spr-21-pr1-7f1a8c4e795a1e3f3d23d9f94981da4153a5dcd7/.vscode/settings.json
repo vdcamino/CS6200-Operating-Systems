@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "array": "c",
+        "string": "c",
+        "string_view": "c",
+        "system_error": "c",
+        "sstream": "c",
+        "content.h": "c",
+        "pthread.h": "c"
+    }
+}

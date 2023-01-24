@@ -1,0 +1,9 @@
+/courses/ud923/filecorpus/1kb-sample-file-0.png
+/courses/ud923/filecorpus/1kb-sample-file-1.html
+/courses/ud923/filecorpus/1kb-sample-file-2.png
+/courses/ud923/filecorpus/1kb-sample-file-3.jpg
+/courses/ud923/filecorpus/1kb-sample-file-4.png
+/courses/ud923/filecorpus/paraglider.jpg
+/courses/ud923/filecorpus/road.jpg
+/courses/ud923/filecorpus/yellowstone.jpg
+/courses/ud923/filecorpus/moranabovejacksonlake.jpg
