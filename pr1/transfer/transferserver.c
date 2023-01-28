@@ -28,6 +28,28 @@ static struct option gLongOptions[] = {
     {"filename", required_argument, NULL, 'f'},
     {NULL, 0, NULL, 0}};
 
+// beej's sendall function adapted
+void send_file(int socket_fd, int file_to_send){
+  char buf[BUFSIZE]; // buffer used to read and send data
+  int bytes_sent = 0; // amount of bytes we have alreasy sent 
+  int bytes_left = 0; // amount of bytes we stil have to send
+  int packet_size; // amount of bytes we have sent during a call of send()
+  int bytes_to_send;
+  do{
+    bytes_to_send = read(file_to_send, buf, BUFSIZE - 1);
+    if (bytes_to_send < 0)
+      exit(1); // error checking: failed to read the file
+    bytes_left = bytes_to_send;
+    while (bytes_left){
+      packet_size = send(socket_fd, buf + bytes_sent, bytes_left, 0);
+      if (packet_size == -1)
+        exit(1); // error checking: failed to send the file packet 
+      bytes_sent += packet_size;
+      bytes_left -= packet_size;
+    }
+  } while(bytes_to_send);
+} 
+
 int main(int argc, char **argv) {
   char *filename = "6200.txt"; // file to transfer 
   int portno = 10823;          // port to listen on 
@@ -68,20 +90,17 @@ int main(int argc, char **argv) {
 
   /* Socket Code Here */
 
-  // client 
-  int client_socket_fd; // file descriptor of the client socket
-  struct sockaddr_in client_address;  // struct containing all the information we need about the address of the client socket 
-  
   // server
-	struct sockaddr_in server_address;  // structs containing all the information we need about the address of the server socket
-  socklen_t addr_len = sizeof server_address;
+  struct sockaddr_in server_address, client_address;  // structs containing all the information we need about the address of the server socket
 	memset(&server_address, 0, sizeof(server_address)); // make sure the struct is empty 
 	server_address.sin_port = htons(portno); // convert multi-byte integer from host to network byte order (short)
 	server_address.sin_addr.s_addr = htonl(INADDR_ANY); // exact same thing as htons (but network long this time)
+  server_address.sin_family = AF_INET;
   int yes = 1;  // For setsockopt() SO_REUSEADDR, to avoid errors when a port is still being used by another socket
-  int pid; // process id of the child process we will use to actually send the file by chunks
-  FILE *fp; // file pointer 
-  char buffer[BUFSIZE]; // buffer that contains the data to send
+  int file_to_send; 
+  int pid;
+  int client_len = sizeof(client_address);  // size of the client address
+  int server_len = sizeof(server_address);
 
   // create server socket that will accept incoming connections
 	int server_socket_fd; // file descriptor of the server socket
@@ -95,73 +114,36 @@ int main(int argc, char **argv) {
   if (bind(server_socket_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
 		exit(1); // error checking: failed to bind socket (assign an address to it)
 
+  getsockname(server_socket_fd, (struct sockaddr *) &server_address,(socklen_t *)&server_len);
+
   // start listening
 	if (listen(server_socket_fd, WAITING_QUEUE_SIZE) < 0)
 		exit(1); // error checking: failed to make socket start listening
-
+  
   // infinite loop: "Your server should not stop after a single transfer, but should continue accepting and transferring files to other clients"
-	while (1) {
-    // connect to the client
-    if ((client_socket_fd = accept(server_socket_fd, (struct sockaddr *)&client_address, &addr_len)) < 0)
+	while (1){
+    // create connection 
+    int connection_socket_fd = accept(server_socket_fd, (struct sockaddr *)&client_address, (socklen_t *)&client_len);
+    if (connection_socket_fd < 0)
       exit(1); // error checking: failed to accept connection 
-
-    int file_to_send, packet_to_send;
-    int file_sent = 0;
-    int packet_sent = 0;
-    // server opens the pre-defined file 
-    // file_to_send = open(filename, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
-    fp = fopen(filename, "r+");
-    if (!fp)
-      exit(1); // error checking: failed to open the file 
-
-    // if (file_to_send < 0) 
-    //   exit(1); // error checking: failed to open the file 
-
-    // send file by chunks, exit while loop when there is no more data to transfer
-     
-		bzero(buffer, BUFSIZE); // clean buffer
-
-    // READ 7.4 Handling Partial send()s from Beej
-    // send by chunks 
-    // server should close the socket after finishing sending the data, that's how the client knows the transfer is done **** 24/01/2023
-
-    // int read_len;
-    // while ((read_len = fread(buffer, sizeof(char), BUFSIZE, file)) > 0) {
-    //   if (send(netsockfd, buffer, read_len, 0) < 0) {
-    //     fprintf(stderr, "File failed to send.\n");
-    //     fclose(fp);
-    //     close(netsockfd);
-    //     exit(1);
-    //   }
-    //   total_size += read_len;
-    // }
-
-    // to continue *****
-    
-          
-    
-    while(packet_to_send != 0){
-      memset(buffer, '\0', BUFSIZE);
-      packet_to_send = read(file_to_send, buffer, BUFSIZE - 1); // -1 to avoid overflow, read returns the number of bytes it has read 
-      if (packet_to_send < 0) {
-        exit(1); // error checking: failed to read the file 
-      }
-      // send file
-      char *cur_position = buffer; // keeps track of where we stopped sending the file 
-      while (packet_to_send > 0){ // stop only when you have sent all the bytes from this packet 
-        packet_sent = send(client_socket_fd, cur_position, packet_to_send, 0);
-        if (packet_sent < 0) 
-          exit(1); // error checking: failed to send data
-        cur_position += packet_sent;
-        packet_to_send -= packet_sent;
-      }
+    pid = fork();
+    if(pid < 0){
+      exit(1); // error checking: failed to fork
     }
-    exit(0); // ended the transfer, exit the server so client can know it is finished 
-
+    if(pid == 0){ // success
+      close(server_socket_fd);
+      // server opens the pre-defined file 
+      file_to_send = open(filename, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+      if (file_to_send < 0)
+        exit(1); // error checking: failed to open the file 
+      // send file 
+      send_file(connection_socket_fd, file_to_send);
+      exit(0);
+    } else {
+      // file sent, close socket connection
+      // sleep(1); // do not close the connection immediately after sending the file
+      close(connection_socket_fd);
+    }
   }
-  // close sockets and file 
-  close(client_socket_fd);
-  close(server_socket_fd);
-  fclose(fp);
 	return 0;
 }

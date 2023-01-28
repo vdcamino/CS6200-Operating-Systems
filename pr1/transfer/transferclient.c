@@ -77,45 +77,39 @@ int main(int argc, char **argv) {
   }
 
   // Socket Code Here 
-  
-  // create server socket
-  struct sockaddr_in server_address;                  // struct containing all the information we need about the address of the server socket 
-	memset(&server_address, 0, sizeof(server_address)); // make sure the struct is empty 
+  // create and open file to start writing on it 
+  int file_recv = open(filename, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+  if (file_recv)
+    exit(1); // error checking: failed to open file
 
-	// create binary representation of server name and stores it as sin_addr. pton = "printable to network"
-	inet_pton(AF_INET, hostname, &server_address.sin_addr);
-	server_address.sin_port = htons(portno); // convert multi-byte integer from host to network byte order (short)
-
-	// create client socket
-	int client_socket_fd, file_recv;
-	if ((client_socket_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0)
+  // create client socket
+	int client_socket_fd;
+	if ((client_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     exit(1); // error checking: failed to create socket
 
-	// establish connection before initiating data exchange
+  // initialize sockaddr_in
+  struct sockaddr_in server_address;
+  struct hostent *server = gethostbyname(hostname);
+  server_address.sin_family = AF_INET;
+  server_address.sin_port = htons(portno);
+  bcopy((char*)server->h_addr, (char*)&server_address.sin_addr.s_addr, server->h_length);
+
+  // establish connection before initiating data exchange
 	if (connect(client_socket_fd, (struct sockaddr*)&server_address, sizeof(server_address)) < 0) 
 	  exit(1); // error checking: failed to connect to server 
 
-  // open file to start writing on it 
-  file_recv = open(filename, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
-  if (file_recv < 0)
-    exit(1); // error checking: failed to open file
-
   // receive the file
   char buffer[BUFSIZE]; // buffer that contains the data to send 
-  int file_packet_size;
-  int total_file_size = 0;
+  memset(buffer, '\0', BUFSIZE);
+  int bytes_rcvd = 0;
   // loop to receive file by chunks
-  while((file_packet_size = recv(client_socket_fd, buffer, BUFSIZE, 0)) > 0){
+  while((bytes_rcvd = recv(client_socket_fd, buffer, BUFSIZE, 0)) > 0){
+    write(file_recv, buffer, bytes_rcvd);
     memset(buffer, '\0', BUFSIZE);
-    total_file_size += file_packet_size;
-    if (file_packet_size < 0)
-      exit(1); // error checking: failed to receive data
-    if(write(file_recv, buffer, file_packet_size) < file_packet_size)
-      exit(1); // error checking: failed to write file
   }
 
+  // free resources 
   close(file_recv);
   close(client_socket_fd);
-
   return 0;
 }
