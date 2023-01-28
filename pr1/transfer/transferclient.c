@@ -9,7 +9,6 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <fcntl.h> // file control options 
-#include <arpa/inet.h> // inet functions
 
 #define BUFSIZE 512
 
@@ -79,24 +78,25 @@ int main(int argc, char **argv) {
   // Socket Code Here 
   // create and open file to start writing on it 
   int file_recv = open(filename, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
-  if (file_recv)
-    exit(1); // error checking: failed to open file
+  if (file_recv < 0)
+    exit(11); // error checking: failed to open file
 
   // create client socket
 	int client_socket_fd;
 	if ((client_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-    exit(1); // error checking: failed to create socket
+    exit(14); // error checking: failed to create socket
 
   // initialize sockaddr_in
   struct sockaddr_in server_address;
   struct hostent *server = gethostbyname(hostname);
+  bzero((char*) &server_address, sizeof(server_address));
   server_address.sin_family = AF_INET;
   server_address.sin_port = htons(portno);
   bcopy((char*)server->h_addr, (char*)&server_address.sin_addr.s_addr, server->h_length);
 
   // establish connection before initiating data exchange
 	if (connect(client_socket_fd, (struct sockaddr*)&server_address, sizeof(server_address)) < 0) 
-	  exit(1); // error checking: failed to connect to server 
+	  exit(12); // error checking: failed to connect to server 
 
   // receive the file
   char buffer[BUFSIZE]; // buffer that contains the data to send 

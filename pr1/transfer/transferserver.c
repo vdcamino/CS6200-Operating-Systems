@@ -31,19 +31,20 @@ static struct option gLongOptions[] = {
 // beej's sendall function adapted
 void send_file(int socket_fd, int file_to_send){
   char buf[BUFSIZE]; // buffer used to read and send data
-  int bytes_sent = 0; // amount of bytes we have alreasy sent 
-  int bytes_left = 0; // amount of bytes we stil have to send
-  int packet_size; // amount of bytes we have sent during a call of send()
-  int bytes_to_send;
+  int bytes_to_send; // total number of bytes of the current packet to send
+  int bytes_left; // number of remaining bytes of the packet we still have to send 
+  int packet_size; // number of bytes we have succeeded to send during the call of send()
+  int bytes_sent; // number of bytes we have already sent, used to mark current position if we don't sent the whole packet
   do{
-    bytes_to_send = read(file_to_send, buf, BUFSIZE - 1);
+    bytes_to_send = read(file_to_send, buf, BUFSIZE);
     if (bytes_to_send < 0)
-      exit(1); // error checking: failed to read the file
+      exit(6); // error checking: failed to read the file
     bytes_left = bytes_to_send;
-    while (bytes_left){
-      packet_size = send(socket_fd, buf + bytes_sent, bytes_left, 0);
+    bytes_sent = 0;
+    while (bytes_sent != bytes_to_send){
+      packet_size = send(socket_fd, bytes_sent + buf, bytes_left, 0);
       if (packet_size == -1)
-        exit(1); // error checking: failed to send the file packet 
+        exit(8); // error checking: failed to send the file packet 
       bytes_sent += packet_size;
       bytes_left -= packet_size;
     }
@@ -98,52 +99,43 @@ int main(int argc, char **argv) {
   server_address.sin_family = AF_INET;
   int yes = 1;  // For setsockopt() SO_REUSEADDR, to avoid errors when a port is still being used by another socket
   int file_to_send; 
-  int pid;
   int client_len = sizeof(client_address);  // size of the client address
   int server_len = sizeof(server_address);
 
   // create server socket that will accept incoming connections
 	int server_socket_fd; // file descriptor of the server socket
 	if ((server_socket_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0)
-		exit(1); // error checking: failed to create socket
+		exit(92); // error checking: failed to create socket
 
   // line of code to lose the pesky "address already in use" error message (set SO_REUSEADDR on a socket to true (1))
   setsockopt(server_socket_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
 
   // before we start listen()ing, we assign a local socket address to the socket we have just created
   if (bind(server_socket_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
-		exit(1); // error checking: failed to bind socket (assign an address to it)
-
+		exit(3); // error checking: failed to bind socket (assign an address to it)
+  
+  // store the current name of the server socket into the server_address data structure 
   getsockname(server_socket_fd, (struct sockaddr *) &server_address,(socklen_t *)&server_len);
 
   // start listening
 	if (listen(server_socket_fd, WAITING_QUEUE_SIZE) < 0)
-		exit(1); // error checking: failed to make socket start listening
+		exit(6); // error checking: failed to make socket start listening
   
   // infinite loop: "Your server should not stop after a single transfer, but should continue accepting and transferring files to other clients"
 	while (1){
     // create connection 
     int connection_socket_fd = accept(server_socket_fd, (struct sockaddr *)&client_address, (socklen_t *)&client_len);
     if (connection_socket_fd < 0)
-      exit(1); // error checking: failed to accept connection 
-    pid = fork();
-    if(pid < 0){
-      exit(1); // error checking: failed to fork
-    }
-    if(pid == 0){ // success
-      close(server_socket_fd);
-      // server opens the pre-defined file 
-      file_to_send = open(filename, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
-      if (file_to_send < 0)
-        exit(1); // error checking: failed to open the file 
-      // send file 
-      send_file(connection_socket_fd, file_to_send);
-      exit(0);
-    } else {
-      // file sent, close socket connection
-      // sleep(1); // do not close the connection immediately after sending the file
-      close(connection_socket_fd);
-    }
+      exit(8); // error checking: failed to accept connection 
+    // server opens the pre-defined file 
+    file_to_send = open(filename, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+    if (file_to_send < 0)
+      exit(19); // error checking: failed to open the file 
+    // send file 
+    send_file(connection_socket_fd, file_to_send);
+    // file sent, close socket connection
+    sleep(1); // do not close the connection immediately after sending the file --> latency, be sure client has had the time to recv it
+    close(connection_socket_fd);
   }
 	return 0;
 }
