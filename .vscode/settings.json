@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "getopt.h": "c"
+        "getopt.h": "c",
+        "unistd.h": "c",
+        "string.h": "c",
+        "types.h": "c"
     }
 }
