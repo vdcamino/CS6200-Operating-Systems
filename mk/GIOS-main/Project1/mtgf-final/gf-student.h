@@ -3,17 +3,19 @@
  */
 #ifndef __GF_STUDENT_H__
 #define __GF_STUDENT_H__
-#include <stdio.h>
-#include <sys/signal.h>
 #include <string.h>
-#include <getopt.h>
 #include <unistd.h>
 #include <errno.h>
-#include <netdb.h>
-#include <sys/socket.h>
 #include <stdlib.h>
-#include <sys/types.h>
+#include <stdio.h>
+#include <netdb.h>
+#include <getopt.h>
+#include <pthread.h>
+#include <sys/socket.h>
 #include <netinet/in.h>
+#include <stddef.h>
+#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/signal.h>
 
- #endif // __GF_STUDENT_H__
+#endif // __GF_STUDENT_H__

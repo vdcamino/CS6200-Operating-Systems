@@ -1,0 +1,9 @@
+/master/1kb-sample-file-0.png
+/master/1kb-sample-file-1.html
+/master/1kb-sample-file-2.png
+/master/1kb-sample-file-3.jpg
+/master/1kb-sample-file-4.png
+/master/paraglider.jpg
+/master/road.jpg
+/master/yellowstone.jpg
+/master/moranabovejacksonlake.jpg

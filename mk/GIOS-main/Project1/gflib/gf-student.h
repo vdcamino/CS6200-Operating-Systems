@@ -15,5 +15,14 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <sys/stat.h>
+#include <linux/limits.h>
+#include <arpa/inet.h>
+
+
+#define SCHEME "GETFILE "
+#define METHOD "GET "
+#define MARKER "\r\n\r\n"
+#define BUFSIZE 2012
+
 
  #endif // __GF_STUDENT_H__

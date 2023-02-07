@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package dfs_service;
+import "google/protobuf/timestamp.proto";
+service DFSService {
+
+
+    // 1.  A method to store files on the server
+         rpc fetchFile(fetchRequest) returns (stream fetchResponse);
+    // 2.  A method to fetch files from the server
+        rpc storeFile(stream storeRequest) returns (storeResponse);
+    // 3.  A method to delete files from the server
+        rpc deleteFile(fetchRequest) returns (storeResponse);
+    // 4. REQUIRED (Parts 1 & 2): A method to list all files on the server
+        rpc listFiles(listRequest) returns (listResponse);
+    // 5. A method to get the status of a file on the server
+        rpc getFileAttrs(statRequest) returns (statResponse);
+
+    
+}
+
+// MESSAGE TYPES FOR FETCH
+message fetchRequest
+{
+    string filepath=1;
+}
+message fetchResponse
+{
+    bytes chunk=1;
+}
+
+//MESSAGE TYPES FOR STORE
+message storeRequest
+{
+    bytes content=1;
+    
+}
+message storeResponse
+{
+  string filename=1;
+}
+
+// MESSAGE TYPES FOR FILE ATTRIBUTES
+message statRequest
+{
+    string filename=1;
+}
+message statResponse
+{
+    uint32 filsize=1;
+    uint64 m_time=2;
+    uint64 c_time=3;
+    
+}
+//MESSAGE TYPES FOR LIST
+message listRequest
+{
+    
+}
+message Item
+{
+    string filename=1;
+    uint64 mtime=2;
+}
+message listResponse
+{
+    repeated Item items=1;
+}
