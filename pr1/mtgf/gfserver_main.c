@@ -3,6 +3,7 @@
 
 #include "gfserver-student.h"
 
+#define BUFSIZE 512
 #define USAGE                                                               \
   "usage:\n"                                                                \
   "  gfserver_main [options]\n"                                             \
@@ -32,6 +33,16 @@ static void _sig_handler(int signo) {
     exit(signo);
   }
 }
+
+// helper function to clear the different buffers we use
+void clear_buffer(char *buffer, int bufsize){
+  memset(buffer, '\0', bufsize);
+}
+
+// initialize global variables
+pthread_mutex_t mutex =  PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t cond =  PTHREAD_COND_INITIALIZER;
+steque_t* work_queue;
 
 /* Main ========================================================= */
 int main(int argc, char **argv) {
@@ -92,17 +103,98 @@ int main(int argc, char **argv) {
 
   content_init(content_map);
 
-  /* Initialize thread management */
-
-  /*Initializing server*/
+  // Initialize threads
+  work_queue = (steque_t*)malloc(sizeof(*work_queue));
+  steque_init(work_queue);
+  set_pthreads(nthreads);
+  
+  // create server
   gfs = gfserver_create();
-
-  //Setting options
   gfserver_set_port(&gfs, port);
-  gfserver_set_maxpending(&gfs, 21);
+  gfserver_set_maxpending(&gfs, 20);
   gfserver_set_handler(&gfs, gfs_handler);
-  gfserver_set_handlerarg(&gfs, NULL);  // doesn't have to be NULL!
-
-  /*Loops forever*/
+  gfserver_set_handlerarg(&gfs, work_queue);
   gfserver_serve(&gfs);
+}
+
+
+void set_pthreads(size_t nthreads){
+  pthread_t threads[nthreads];
+  int res = pthread_mutex_init(&mutex, NULL);
+  if (res != 0)
+    exit(92);
+  for (int i = 0; i < nthreads; i++) {
+    res = pthread_create(&threads[i], NULL, thread_handle_req, NULL);
+    if (res != 0)
+      exit(34);
+  }
+}
+
+void *thread_handle_req(void *arg) {
+  int fd, fstats;
+  char buf[BUFSIZE];
+  struct stat finfo;
+  steque_request *req;
+  size_t total_bts_sent = 0;
+  size_t bts_sent = 0;
+  size_t bts_read = 0;
+  size_t file_len;
+
+  clear_buffer(buf, BUFSIZE);
+
+  while (1) {
+    // mutex lock
+    if (pthread_mutex_lock(&mutex) != 0)
+      exit(12);
+
+    // do nothing while queue is empty
+    while (steque_isempty(work_queue))
+      pthread_cond_wait(&cond, &mutex);
+
+    // get a request from the queue 
+    req = steque_pop(work_queue);
+
+    // mutex unlock
+    if (pthread_mutex_unlock(&mutex))
+      exit(29);
+
+    // signal to other threads
+    pthread_cond_signal(&cond);
+
+    // send file 
+    // start by getting the filepath 
+    fd = content_get(req->filepath);
+    // check if you have found the file 
+    if (fd == -1){
+      gfs_sendheader(&req->context, GF_FILE_NOT_FOUND, 0);
+      break;
+    } 
+    // file was found, now get stats
+    fstats = fstat(fd, &finfo);
+    // check if error when getting stats
+    if (fstats == -1) {
+      gfs_sendheader(&req->context, GF_ERROR, 0);
+      close(fd);
+      break;
+    }
+
+    // everything ok, send header
+    gfs_sendheader(&req->context, GF_OK, fils.st_size);
+
+    // send everything 
+    file_len = finfo.st_size;
+    while(file_len > total_bts_sent){
+      clear_buffer(buf, BUFSIZE);
+      bts_read = pread(fd, buf, BUFSIZE, bts_sent);
+      if(!(bts_read > 0))
+        break;
+      bts_sent = gfs_send(&req->context, buf, bts_read);
+      total_bts_sent += bts_sent;
+    }
+
+    // free resources
+    free(req);
+  }
+  free(req);
+  return 0;
 }
