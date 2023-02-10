@@ -103,7 +103,7 @@ int main(int argc, char **argv) {
 
   content_init(content_map);
 
-  // Initialize threads
+  // Initialize threads and work queue 
   work_queue = (steque_t*)malloc(sizeof(*work_queue));
   steque_init(work_queue);
   set_pthreads(nthreads);
@@ -135,14 +135,11 @@ void *thread_handle_req(void *arg) {
   char buf[BUFSIZE];
   struct stat finfo;
   steque_request *req;
-  size_t total_bts_sent = 0;
-  size_t bts_sent = 0;
-  size_t bts_read = 0;
-  size_t file_len;
+  size_t total_bts_sent, bts_sent, bts_read, file_len;
 
   clear_buffer(buf, BUFSIZE);
 
-  while (1) {
+  for(;;){
     // mutex lock
     if (pthread_mutex_lock(&mutex) != 0)
       exit(12);
@@ -179,18 +176,21 @@ void *thread_handle_req(void *arg) {
     }
 
     // everything ok, send header
-    gfs_sendheader(&req->context, GF_OK, fils.st_size);
-
+    gfs_sendheader(&req->context, GF_OK, finfo.st_size);
+    
     // send everything 
+    total_bts_sent = 0;
+    bts_sent = 0;
+    bts_read = 0;
     file_len = finfo.st_size;
-    while(file_len > total_bts_sent){
+    do {
       clear_buffer(buf, BUFSIZE);
-      bts_read = pread(fd, buf, BUFSIZE, bts_sent);
+      bts_read = pread(fd, buf, BUFSIZE, total_bts_sent);
       if(!(bts_read > 0))
         break;
       bts_sent = gfs_send(&req->context, buf, bts_read);
       total_bts_sent += bts_sent;
-    }
+    } while(file_len > total_bts_sent);
 
     // free resources
     free(req);

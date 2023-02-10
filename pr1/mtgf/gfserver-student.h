@@ -10,9 +10,6 @@
 #include "steque.h"
 #include <pthread.h>
 
-void cleanup_threads();
-void init_threads(size_t numthreads);
-
 // request data structure
 typedef struct steque_request{
 	const char *filepath;
@@ -20,6 +17,11 @@ typedef struct steque_request{
     gfcontext_t *context;
 } steque_request;
 
-void* handleRequest(void*arg);
+void* thread_handle_req(void* arg);
+
+void cleanup_threads();
+
+void set_pthreads(size_t nthreads);
+
 
 #endif // __GF_SERVER_STUDENT_H__
