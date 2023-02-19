@@ -1,3 +1,0 @@
-/Users/tomi/Documents/School/CS 6200/Projects/pr3/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/Users/tomi/Documents/School/CS 6200/Projects/pr3/cmake-build-debug/CMakeFiles/edit_cache.dir
-/Users/tomi/Documents/School/CS 6200/Projects/pr3/cmake-build-debug/CMakeFiles/pr3.dir

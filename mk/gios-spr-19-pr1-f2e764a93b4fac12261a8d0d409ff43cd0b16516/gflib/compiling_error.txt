@@ -1,5 +1,0 @@
-/home/yxu/Documents/CS6200/gios-spr-19-pr1/gflib/gfclient.c: In function ‘gfc_perform’:
-/home/yxu/Documents/CS6200/gios-spr-19-pr1/gflib/gfclient.c:173:15: error: ‘gfcrequest_t {aka struct gfcrequest_t}’ has no member named ‘header’; did you mean ‘server’?
-          gfr->header = buffer;
-               ^~~~~~
-               server

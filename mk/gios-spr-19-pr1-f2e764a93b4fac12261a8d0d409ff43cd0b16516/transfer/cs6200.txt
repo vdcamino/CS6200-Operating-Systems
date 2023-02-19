@@ -1,3 +1,0 @@
-this is a test message sent from server.
-by yiran xu
-for OMSCS CS6200 pr1

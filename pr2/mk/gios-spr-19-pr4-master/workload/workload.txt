@@ -1,3 +1,0 @@
-paraglider.jpg paraglider_small.jpg
-road.jpg road_small.jpg
-yellowstone.jpg yellowstone_small.jpg
